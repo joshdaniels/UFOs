@@ -1,49 +1,57 @@
+// from data.js
 var tableData = data;
-const tableData2 = JSON.parse(JSON.stringify(data));
-var filter_btn = d3.select("#filter-btn");
+
+// YOUR CODE HERE!
 var tbody = d3.select("tbody");
-var reset_table = d3.select("#reset_table");
+var button = d3.select("#filter-btn");
+var inputField1 = d3.select("#datetime");
+var inputField2 = d3.select("#city");
+var resetbtn = d3.select("#reset-btn");
+var columns = ["datetime", "city", "state", "country", "shape", "durationMinutes", "comments"]
 
-filter_btn.on("click", function() {
-    d3.event.preventDefault();
-    tbody.selectAll("td").remove();
-    
-    var datetime = d3.select("#datetime").property("value");
-    var city = d3.select("#city").property("value");
-    var state = d3.select("#state").property("value");
-    var country = d3.select("#country").property("value");
-    var shape = d3.select("#shape").property("value");
-    var filter = "var filtered_table = tableData";
-    
-    if(datetime) { filter = filter.concat(".filter(sighting => sighting.datetime === datetime)"); }
-    if(city) { filter = filter.concat(".filter(sighting => sighting.city === city)"); }
-    if(state) { filter = filter.concat(".filter(sighting => sighting.state === state)"); }
-    if(country) { filter = filter.concat(".filter(sighting => sighting.country === country)"); }
-    if(shape) { filter = filter.concat(".filter(sighting => sighting.shape === shape)"); }
+var populate = (dataInput) => {
 
-    console.log(filter);
-    eval(filter);
-
-    filtered_table.forEach(function(object_) {
-        var row = tbody.append("tr");
-        Object.entries(object_).forEach(function([key, value]) {
-            var cell = row.append("td");
-            cell.text(value);
-        });
-    });
-});
-
-function populate() {
-    tableData2.forEach(function(object_) {
-        var row = tbody.append("tr");
-        Object.entries(object_).forEach(function([key, value]) {
-            var cell = row.append("td");
-            cell.text(value);        
-        });
-    });
+	dataInput.forEach(ufo_sightings => {
+		var row = tbody.append("tr");
+		columns.forEach(column => row.append("td").text(ufo_sightings[column])
+		)
+	});
 }
 
-populate();
+//Populate table
+populate(data);
+
+// Filter by attribute
+button.on("click", () => {
+	d3.event.preventDefault();
+	var inputDate = inputField1.property("value").trim();
+	var inputCity = inputField2.property("value").toLowerCase().trim();
+	// Filter by field matching input value
+	var filterDate = data.filter(data => data.datetime === inputDate);
+	console.log(filterDate)
+	var filterCity = data.filter(data => data.city === inputCity);
+	console.log(filterCity)
+	var filterData = data.filter(data => data.datetime === inputDate && data.city === inputCity);
+	console.log(filterData)
+
+	// Add filtered sighting to table
+	tbody.html("");
+
+	let response = {
+		filterData, filterCity, filterDate
+	}
+
+	if (response.filterData.length !== 0) {
+		populate(filterData);
+	}
+		else if (response.filterData.length === 0 && ((response.filterCity.length !== 0 || response.filterDate.length !== 0))){
+			populate(filterCity) || populate(filterDate);
+	
+		}
+		else {
+			tbody.append("tr").append("td").text("No results found!"); 
+		}
+})
 
 resetbtn.on("click", () => {
 	tbody.html("");
